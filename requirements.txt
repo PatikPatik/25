@@ -1,0 +1,6 @@
+python-telegram-bot[job-queue,rate-limiter]==22.1
+httpx~=0.28
+pydantic==2.8.2
+pydantic-settings==2.4.0
+python-json-logger==2.0.7
+psycopg[binary,pool]>=3.2.2,<3.3.0
