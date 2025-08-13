@@ -32,11 +32,11 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             store.add_referral(referrer_id=referrer_id, referee_id=update.effective_user.id)
             logger.info("Referral linked: %s -> %s", referrer_id, update.effective_user.id)
 
-    await update.message.reply_text(
-        "Привет! Это бот с балансом и TON-оплатой.
-"
+    text = (
+        "Привет! Это бот с балансом и TON-оплатой.\n"
         "Команды: /pay — пополнить, /balance — баланс, /ref — рефссылка, /help — помощь."
     )
+    await update.message.reply_text(text)
 
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Команды: /pay, /balance, /ref, /help")
@@ -55,13 +55,8 @@ async def cmd_ref(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     cnt_total = sum(1 for r in store.REFERRALS.values() if r.referrer_id == update.effective_user.id)
     cnt_active = sum(1 for r in store.REFERRALS.values() if r.referrer_id == update.effective_user.id and r.activated)
     await update.message.reply_text(
-        f"Ваша реферальная ссылка:
-{link}
-
-"
-        f"Привлечено: {cnt_total}
-Активировали оплату: {cnt_active}
-"
+        f"Ваша реферальная ссылка:\n{link}\n\n"
+        f"Привлечено: {cnt_total}\nАктивировали оплату: {cnt_active}\n"
         f"Бонусы: реферал +{settings.REF_BONUS_REFEREE}, вам +{settings.REF_BONUS_REFERRER} при первой оплате реферала."
     )
 
@@ -71,11 +66,8 @@ async def cmd_pay(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     amount_ton = settings.TON_MIN_AMOUNT
     code = secrets.token_hex(3).upper()
     link = ton_deeplink(settings.TON_WALLET, amount_ton, code)
-    kb = InlineKeyboardMarkup([[
-        InlineKeyboardButton("Оплатить в Tonkeeper", url=link)
-    ],[
-        InlineKeyboardButton("Проверить оплату", callback_data=f"check:{code}")
-    ]])
+    kb = InlineKeyboardMarkup([[InlineKeyboardButton("Оплатить в Tonkeeper", url=link)],
+                               [InlineKeyboardButton("Проверить оплату", callback_data=f"check:{code}")]])
 
     # save invoice in memory
     inv = store.Invoice(
@@ -87,10 +79,8 @@ async def cmd_pay(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     store.set_invoice(inv)
 
     await update.message.reply_text(
-        f"Счёт на {amount_ton:.3f} TON создан.
-"
-        f"Комментарий к переводу: {code}
-"
+        f"Счёт на {amount_ton:.3f} TON создан.\n"
+        f"Комментарий к переводу: {code}\n"
         f"Счёт активен {settings.TON_INVOICE_TTL//60} мин.",
         reply_markup=kb
     )
@@ -128,8 +118,7 @@ async def cb_check(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             store.add_balance(inv.user_id, settings.REF_BONUS_REFEREE)
 
     await query.edit_message_text(
-        f"✅ Платёж найден! Баланс пополнен на {credits} кредитов.
-"
+        f"✅ Платёж найден! Баланс пополнен на {credits} кредитов.\n"
         f"Текущий баланс: {new_bal}."
     )
 
